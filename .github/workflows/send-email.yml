@@ -1,0 +1,35 @@
+
+#on:
+#  schedule:
+#    - cron: '0 0 1 */3 *'
+#  workflow_dispatch:
+
+# .github/workflows/send-email.yml
+name: Send Email Notification
+
+on:
+  push:
+    branches:
+      - main  # 当代码推送到 main 分支时触发
+
+jobs:
+  send_email:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18' # 使用一个稳定版本的Node.js
+
+      - name: Install dependencies
+        run: npm install nodemailer
+
+      - name: Run email script
+        run: node src/main.js
+        env:
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          TO_EMAIL: 'your-recipient@example.com' # 可以在这里设置收件人
