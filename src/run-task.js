@@ -12,7 +12,7 @@ const LAST_RUN_FILE = path.join(__dirname, 'last_run.txt');
 // 示例：一个名为 main_task.sh 的shell脚本
 const COMMAND_TO_RUN = path.join(__dirname, 'main_task.sh');
 
-const DAYS_INTERVAL = 80; // 设置任务运行的间隔天数
+const DAYS_INTERVAL = 2; // 设置任务运行的间隔天数
 
 /**
  * 检查并运行任务的主函数
