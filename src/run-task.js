@@ -10,7 +10,7 @@ const LAST_RUN_FILE = path.join(__dirname, 'last_run.txt');
 // 您要执行的主要任务的命令
 // 它可以是一个shell脚本，另一个Node.js文件，或者任何可执行命令
 // 示例：一个名为 main_task.sh 的shell脚本
-const COMMAND_TO_RUN = path.join(__dirname, 'main_task.sh');
+const COMMAND_TO_RUN = path.join(__dirname, 'main.js');
 
 const DAYS_INTERVAL = 1; // 设置任务运行的间隔天数
 
