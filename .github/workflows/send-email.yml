@@ -22,7 +22,7 @@ jobs:
         run: npm install nodemailer
 
       - name: Run email script
-        run: node src/main.js
+        run: node src/run-task.js
         env:
           GMAIL_USER: ${{ secrets.GMAIL_USER }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
