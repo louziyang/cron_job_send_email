@@ -14,7 +14,7 @@ const nodeExecutable = process.execPath;
 // 示例：一个名为 main_task.sh 的shell脚本
 const SCRIPT_TO_RUN = path.join(__dirname, 'main.js');
 
-console.log(`尝试使用 '${nodeExecutable}' 运行 '${anotherScriptPath}'...`);
+console.log(`尝试使用 '${nodeExecutable}' 运行 '${SCRIPT_TO_RUN}'...`);
 
 const DAYS_INTERVAL = 1; // 设置任务运行的间隔天数
 
@@ -57,7 +57,7 @@ const runTask = async () => {
         
         // 使用 child_process.exec 执行外部命令
         // 注意：COMMAND_TO_RUN 必须是可执行的，并且路径正确
-        exec(`${nodeExecutable} ${anotherScriptPath}`, (error, stdout, stderr) => {
+        exec(`${nodeExecutable} ${SCRIPT_TO_RUN}`, (error, stdout, stderr) => {
             if (error) {
                 console.error(`执行主要任务时出错: ${error.message}`);
                 return; // 如果任务失败，不更新时间戳
