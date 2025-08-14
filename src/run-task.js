@@ -9,8 +9,12 @@ const LAST_RUN_FILE = path.join(__dirname, 'last_run.txt');
 
 // 您要执行的主要任务的命令
 // 它可以是一个shell脚本，另一个Node.js文件，或者任何可执行命令
+// 获取当前运行的 Node.js 解释器的路径
+const nodeExecutable = process.execPath; 
 // 示例：一个名为 main_task.sh 的shell脚本
-const COMMAND_TO_RUN = path.join(__dirname, 'main.js');
+const SCRIPT_TO_RUN = path.join(__dirname, 'main.js');
+
+console.log(`尝试使用 '${nodeExecutable}' 运行 '${anotherScriptPath}'...`);
 
 const DAYS_INTERVAL = 1; // 设置任务运行的间隔天数
 
@@ -53,7 +57,7 @@ const runTask = async () => {
         
         // 使用 child_process.exec 执行外部命令
         // 注意：COMMAND_TO_RUN 必须是可执行的，并且路径正确
-        exec(COMMAND_TO_RUN, (error, stdout, stderr) => {
+        exec(`${nodeExecutable} ${anotherScriptPath}`, (error, stdout, stderr) => {
             if (error) {
                 console.error(`执行主要任务时出错: ${error.message}`);
                 return; // 如果任务失败，不更新时间戳
