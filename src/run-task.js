@@ -138,7 +138,7 @@ const runTask = async () => {
             console.log(`主要任务标准输出:\n${stdout}`);
             
             // 任务成功执行后，更新 GitHub Repository Variable 中的上次运行时间
-            const updateSuccess = await updateGitHubVariable(CURRENT_RUN_TIMESTAMP);
+            const updateSuccess = updateGitHubVariable(CURRENT_RUN_TIMESTAMP);
             if (updateSuccess) {
                 console.log(`任务完成，已成功更新 GitHub Repository Variable 中的时间戳到 ${CURRENT_RUN_DATE_STR}。`);
             } else {
