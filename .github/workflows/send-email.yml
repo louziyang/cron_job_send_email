@@ -19,7 +19,18 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '18' # 使用一个稳定版本的Node.js
+          
+      - name: Install Node.js dependencies
+        # 运行 npm install 来安装 package.json 中列出的所有依赖项
+        run: npm install
 
+      - name: Debug - List files after install
+        run: |
+          echo "node_modules/ 目录内容:"
+          ls -la node_modules/
+          echo "node_modules/node-fetch/ 目录内容:"
+          ls -la node_modules/node-fetch/ || echo "node-fetch 目录未找到，安装可能失败。"
+          
       - name: Install dependencies
         run: npm install nodemailer
         
