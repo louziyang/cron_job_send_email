@@ -137,7 +137,7 @@ const runTask = async () => {
     if (daysDiff >= DAYS_INTERVAL) {
         console.log(`已达到或超过 ${DAYS_INTERVAL} 天间隔，开始执行主要任务...`);
         
-        exec(`${nodeExecutable} ${SCRIPT_TO_RUN}`, (error, stdout, stderr) => {
+        exec(`${nodeExecutable} ${SCRIPT_TO_RUN}`, async (error, stdout, stderr) => { 
             if (error) {
                 console.error(`执行主要任务时出错: ${error.message}`);
                 // 如果任务失败，不更新 GitHub Variable
