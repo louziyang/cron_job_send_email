@@ -22,12 +22,9 @@ jobs:
 
       - name: Install dependencies
         run: npm install nodemailer
-      
-      - name: Write to a file
-        run: echo "Hello GitHub Actions!" > my-output.txt
         
-      - name: Verify file content
-        run: cat my-output.txt
+      - name: Install dependencies
+        run: npm install node-fetch
         
       - name: Run email script
         run: node src/run-task.js
