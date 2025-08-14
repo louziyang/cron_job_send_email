@@ -2,26 +2,24 @@
 const fs = require('fs'); // 仍然用于读取可能存在的旧文件（可选，用于兼容）
 const path = require('path'); // 用于处理文件路径
 const { exec } = require('child_process'); // 用于执行外部命令
-const fetch = require('node-fetch'); // 用于进行HTTP请求
+// const fetch = require('node-fetch'); // ⬅️ 已移除：不再使用 require() 导入 node-fetch
 
 // GitHub API 相关配置
 const GITHUB_API_URL = 'https://api.github.com';
 const REPO_OWNER = process.env.GITHUB_REPOSITORY.split('/')[0]; // 从GITHUB_REPOSITORY环境变量中获取所有者
 const REPO_NAME = process.env.GITHUB_REPOSITORY.split('/')[1];  // 从GITHUB_REPOSITORY环境变量中获取仓库名称
 const REPO_PAT = process.env.REPO_PAT; // 从GitHub Secrets中获取的PAT
-const LAST_RUN_VARIABLE_NAME = 'LAST_RUN_DATE'; // GitHub Repository Variable 的名称
+const LAST_RUN_VARIABLE_NAME = 'LAST_TASK_RUN_TIMESTAMP'; // GitHub Repository Variable 的名称
 
 // 您要执行的主要任务的命令
-// 它可以是一个shell脚本，另一个Node.js文件，或者任何可执行命令
-// 获取当前运行的 Node.js 解释器的路径
-const nodeExecutable = process.execPath; 
-// 示例：一个名为 main_task.sh 的shell脚本
 const SCRIPT_TO_RUN = path.join(__dirname, 'main.js');
 
 console.log(`尝试使用 '${nodeExecutable}' 运行 '${SCRIPT_TO_RUN}'...`);
 
-const DAYS_INTERVAL = 1; // 设置任务运行的间隔天数
+const DAYS_INTERVAL = 1; // 运行间隔天数
 
+// 声明 fetch 变量，它将在 runTask 函数中被赋值
+let fetch;
 
 /**
  * 从 GitHub Repository Variable 获取上次运行时间戳
@@ -35,6 +33,7 @@ async function getGitHubVariable() {
 
     const url = `${GITHUB_API_URL}/repos/${REPO_OWNER}/${REPO_NAME}/actions/variables/${LAST_RUN_VARIABLE_NAME}`;
     try {
+        // 使用已赋值的 fetch 函数
         const response = await fetch(url, {
             method: 'GET',
             headers: {
@@ -72,6 +71,7 @@ async function updateGitHubVariable(timestamp) {
 
     const url = `${GITHUB_API_URL}/repos/${REPO_OWNER}/${REPO_NAME}/actions/variables/${LAST_RUN_VARIABLE_NAME}`;
     try {
+        // 使用已赋值的 fetch 函数
         const response = await fetch(url, {
             method: 'PATCH', // 使用 PATCH 方法更新现有变量
             headers: {
@@ -100,11 +100,23 @@ async function updateGitHubVariable(timestamp) {
     }
 }
 
+
 /**
  * 检查并运行任务的主函数
  */
 const runTask = async () => {
-    // ⭐ 获取当前任务运行的时间戳
+    // ⭐ 核心更改：在这里动态导入 node-fetch
+    try {
+        // 使用 await import() 来加载 ES Module
+        const nodeFetchModule = await import('node-fetch');
+        // node-fetch 的默认导出是其 fetch 函数
+        fetch = nodeFetchModule.default; 
+    } catch (importError) {
+        console.error('动态导入 node-fetch 失败:', importError.message);
+        console.error('请确保您的 Node.js 环境支持 ES Modules 或安装了兼容版本。');
+        return; // 如果无法导入 fetch，则终止脚本执行
+    }
+
     const CURRENT_RUN_TIMESTAMP = Date.now(); 
     const CURRENT_RUN_DATE_STR = new Date(CURRENT_RUN_TIMESTAMP).toLocaleString();
 
@@ -125,12 +137,11 @@ const runTask = async () => {
     if (daysDiff >= DAYS_INTERVAL) {
         console.log(`已达到或超过 ${DAYS_INTERVAL} 天间隔，开始执行主要任务...`);
         
-        // 使用 child_process.exec 执行外部命令
-        // 注意：COMMAND_TO_RUN 必须是可执行的，并且路径正确
         exec(`${nodeExecutable} ${SCRIPT_TO_RUN}`, (error, stdout, stderr) => {
             if (error) {
                 console.error(`执行主要任务时出错: ${error.message}`);
-                return; // 如果任务失败，不更新时间戳
+                // 如果任务失败，不更新 GitHub Variable
+                return;
             }
             if (stderr) {
                 console.error(`主要任务标准错误输出: ${stderr}`);
@@ -138,7 +149,7 @@ const runTask = async () => {
             console.log(`主要任务标准输出:\n${stdout}`);
             
             // 任务成功执行后，更新 GitHub Repository Variable 中的上次运行时间
-            const updateSuccess = updateGitHubVariable(CURRENT_RUN_TIMESTAMP);
+            const updateSuccess = await updateGitHubVariable(CURRENT_RUN_TIMESTAMP);
             if (updateSuccess) {
                 console.log(`任务完成，已成功更新 GitHub Repository Variable 中的时间戳到 ${CURRENT_RUN_DATE_STR}。`);
             } else {
@@ -147,7 +158,7 @@ const runTask = async () => {
         });
 
     } else {
-        console.log(`距离上次运行只过了 ${daysDiff} 天，不足 ${DAYS_INTERVAL} 天，跳过本次运行。`);
+        console.log(`距离上次任务完成只过了 ${daysDiff} 天，不足 ${DAYS_INTERVAL} 天，跳过本次运行。`);
     }
 };
 
