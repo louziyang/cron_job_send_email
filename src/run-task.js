@@ -1,11 +1,15 @@
 // run-task.js
-const fs = require('fs'); // 用于文件系统操作
+const fs = require('fs'); // 仍然用于读取可能存在的旧文件（可选，用于兼容）
 const path = require('path'); // 用于处理文件路径
 const { exec } = require('child_process'); // 用于执行外部命令
+const fetch = require('node-fetch'); // 用于进行HTTP请求
 
-// 存储上次运行日期的时间戳文件路径
-// 建议将其放置在您的项目目录中
-const LAST_RUN_FILE = path.join(__dirname, 'last_run.txt');
+// GitHub API 相关配置
+const GITHUB_API_URL = 'https://api.github.com';
+const REPO_OWNER = process.env.GITHUB_REPOSITORY.split('/')[0]; // 从GITHUB_REPOSITORY环境变量中获取所有者
+const REPO_NAME = process.env.GITHUB_REPOSITORY.split('/')[1];  // 从GITHUB_REPOSITORY环境变量中获取仓库名称
+const REPO_PAT = process.env.REPO_PAT; // 从GitHub Secrets中获取的PAT
+const LAST_RUN_VARIABLE_NAME = 'LAST_RUN_DATE'; // GitHub Repository Variable 的名称
 
 // 您要执行的主要任务的命令
 // 它可以是一个shell脚本，另一个Node.js文件，或者任何可执行命令
@@ -18,38 +22,104 @@ console.log(`尝试使用 '${nodeExecutable}' 运行 '${SCRIPT_TO_RUN}'...`);
 
 const DAYS_INTERVAL = 1; // 设置任务运行的间隔天数
 
+
+/**
+ * 从 GitHub Repository Variable 获取上次运行时间戳
+ * @returns {Promise<number>} 上次运行的时间戳（毫秒），如果未找到则为0
+ */
+async function getGitHubVariable() {
+    if (!REPO_PAT) {
+        console.error('错误: REPO_PAT 环境变量未设置。无法获取 GitHub Variable。');
+        return 0;
+    }
+
+    const url = `${GITHUB_API_URL}/repos/${REPO_OWNER}/${REPO_NAME}/actions/variables/${LAST_RUN_VARIABLE_NAME}`;
+    try {
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Authorization': `token ${REPO_PAT}`,
+                'Accept': 'application/vnd.github.v3+json',
+                'User-Agent': 'Node.js Script for GitHub Actions', // 推荐设置User-Agent
+            },
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            const value = parseInt(data.value, 10);
+            return isNaN(value) ? 0 : value; // 如果解析失败，返回0
+        } else {
+            const errorText = await response.text();
+            console.error(`获取 GitHub Variable 失败: ${response.status} - ${errorText}`);
+            return 0; // 获取失败，视为首次运行
+        }
+    } catch (error) {
+        console.error(`获取 GitHub Variable 时发生网络错误: ${error.message}`);
+        return 0; // 发生错误，视为首次运行
+    }
+}
+
+/**
+ * 更新 GitHub Repository Variable 中的上次运行时间戳
+ * @param {number} timestamp 要写入的时间戳（毫秒）
+ * @returns {Promise<boolean>} 更新是否成功
+ */
+async function updateGitHubVariable(timestamp) {
+    if (!REPO_PAT) {
+        console.error('错误: REPO_PAT 环境变量未设置。无法更新 GitHub Variable。');
+        return false;
+    }
+
+    const url = `${GITHUB_API_URL}/repos/${REPO_OWNER}/${REPO_NAME}/actions/variables/${LAST_RUN_VARIABLE_NAME}`;
+    try {
+        const response = await fetch(url, {
+            method: 'PATCH', // 使用 PATCH 方法更新现有变量
+            headers: {
+                'Authorization': `token ${REPO_PAT}`,
+                'Accept': 'application/vnd.github.v3+json',
+                'User-Agent': 'Node.js Script for GitHub Actions',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                name: LAST_RUN_VARIABLE_NAME,
+                value: timestamp.toString(), // 将时间戳转换为字符串
+            }),
+        });
+
+        if (response.ok) {
+            console.log(`成功更新 GitHub Variable '${LAST_RUN_VARIABLE_NAME}' 为 ${timestamp}`);
+            return true;
+        } else {
+            const errorText = await response.text();
+            console.error(`更新 GitHub Variable 失败: ${response.status} - ${errorText}`);
+            return false;
+        }
+    } catch (error) {
+        console.error(`更新 GitHub Variable 时发生网络错误: ${error.message}`);
+        return false;
+    }
+}
+
 /**
  * 检查并运行任务的主函数
  */
 const runTask = async () => {
-    let lastRunTimestamp = 0; // 默认为0，表示从未运行过
+    // ⭐ 获取当前任务运行的时间戳
+    const CURRENT_RUN_TIMESTAMP = Date.now(); 
+    const CURRENT_RUN_DATE_STR = new Date(CURRENT_RUN_TIMESTAMP).toLocaleString();
 
-    try {
-        // 尝试读取上次运行的时间戳
-        const lastRunData = fs.readFileSync(LAST_RUN_FILE, 'utf8');
-        // 将读取到的字符串转换为整数
-        lastRunTimestamp = parseInt(lastRunData, 10);
-        // 验证时间戳是否有效
-        if (isNaN(lastRunTimestamp)) {
-            lastRunTimestamp = 0; // 如果无效，重置为0
-            console.warn('读取到的上次运行时间戳无效，将视为首次运行。');
-        }
-    } catch (error) {
-        // 如果文件不存在或读取失败，这意味着是第一次运行
-        console.log('上次运行文件不存在或无法读取，将进行首次运行判断。');
-        // lastRunTimestamp 保持为0，任务会立即运行
+    // 从 GitHub Repository Variable 中获取上次运行时间戳
+    let lastRunTimestamp = await getGitHubVariable();
+    if (lastRunTimestamp === 0) {
+        console.log('GitHub Variable 中未找到上次运行时间，或获取失败，将视为首次运行。');
     }
 
-    // 获取当前时间戳（毫秒）
-    const currentTimestamp = Date.now();
-
     // 计算从上次运行到当前的天数差
-    // 1000 毫秒/秒 * 60 秒/分 * 60 分/小时 * 24 小时/天 = 每天的毫秒数
-    const daysDiff = Math.floor((currentTimestamp - lastRunTimestamp) / (1000 * 60 * 60 * 24));
+    const daysDiff = Math.floor((CURRENT_RUN_TIMESTAMP - lastRunTimestamp) / (1000 * 60 * 60 * 24));
 
-    console.log(`上次运行时间: ${lastRunTimestamp ? new Date(lastRunTimestamp).toLocaleString() : 'N/A'}`);
-    console.log(`当前时间: ${new Date(currentTimestamp).toLocaleString()}`);
-    console.log(`距离上次运行已过 ${daysDiff} 天。`);
+    console.log(`上次任务完成时间 (从GitHub Variable获取): ${lastRunTimestamp ? new Date(lastRunTimestamp).toLocaleString() : 'N/A'}`);
+    console.log(`本次任务运行时间: ${CURRENT_RUN_DATE_STR}`);
+    console.log(`距离上次任务完成已过 ${daysDiff} 天。`);
 
     // 判断是否达到运行间隔
     if (daysDiff >= DAYS_INTERVAL) {
@@ -67,12 +137,12 @@ const runTask = async () => {
             }
             console.log(`主要任务标准输出:\n${stdout}`);
             
-            // 任务成功执行后，更新上次运行的时间戳为当前时间
-            try {
-                fs.writeFileSync(LAST_RUN_FILE, currentTimestamp.toString(), 'utf8');
-                console.log(`任务完成，已成功更新上次运行时间戳到 ${new Date(currentTimestamp).toLocaleString()}。`);
-            } catch (writeError) {
-                console.error(`写入上次运行文件失败: ${writeError.message}`);
+            // 任务成功执行后，更新 GitHub Repository Variable 中的上次运行时间
+            const updateSuccess = await updateGitHubVariable(CURRENT_RUN_TIMESTAMP);
+            if (updateSuccess) {
+                console.log(`任务完成，已成功更新 GitHub Repository Variable 中的时间戳到 ${CURRENT_RUN_DATE_STR}。`);
+            } else {
+                console.error('任务完成，但未能更新 GitHub Repository Variable。请检查日志。');
             }
         });
 
