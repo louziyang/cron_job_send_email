@@ -3,7 +3,7 @@ name: Send Email Notification
 
 on:
   schedule:
-    - cron: '0 0 * * *' 
+    - cron: '0 5 * * *' 
   workflow_dispatch:
 
 jobs:
