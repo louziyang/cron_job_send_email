@@ -7,7 +7,7 @@ import { exec } from 'child_process'; // 用于执行外部命令
 const GITHUB_API_URL = 'https://api.github.com';
 const REPO_OWNER = process.env.GITHUB_REPOSITORY.split('/')[0]; // 从GITHUB_REPOSITORY环境变量中获取所有者
 const REPO_NAME = process.env.GITHUB_REPOSITORY.split('/')[1];  // 从GITHUB_REPOSITORY环境变量中获取仓库名称
-const REPO_PAT = process.env.GITHUBTOKEN; // 从GitHub Secrets中获取的PAT
+const GITHUB_TOKEN = process.env.GITHUB_TOKEN; // 从GitHub Secrets中获取的PAT
 const LAST_RUN_DATE = process.env.LAST_RUN_DATE; // 从GitHub Variables get LAST_RUN_DATE
 
 // 获取当前运行的 Node.js 解释器的路径
@@ -25,8 +25,8 @@ const DAYS_INTERVAL = 1; // 运行间隔天数
  * @returns {Promise<number>} 上次运行的时间戳（毫秒），如果未找到则为0
  */
 async function getGitHubVariable() {
-    if (!REPO_PAT) {
-        console.error('错误: REPO_PAT 环境变量未设置。无法获取 GitHub Variable。');
+    if (!GITHUB_TOKEN) {
+        console.error('错误: GITHUB_TOKEN 环境变量未设置。无法获取 GitHub Variable。');
         return 0;
     }
 
@@ -36,7 +36,7 @@ async function getGitHubVariable() {
         const response = await fetch(url, {
             method: 'GET',
             headers: {
-                'Authorization': `token ${REPO_PAT}`,
+                'Authorization': `token ${GITHUB_TOKEN}`,
                 'Accept': 'application/vnd.github.v3+json',
                 'User-Agent': 'Node.js Script for GitHub Actions', // 推荐设置User-Agent
             },
@@ -63,8 +63,8 @@ async function getGitHubVariable() {
  * @returns {Promise<boolean>} 更新是否成功
  */
 async function updateGitHubVariable(timestamp) {
-    if (!REPO_PAT) {
-        console.error('错误: REPO_PAT 环境变量未设置。无法更新 GitHub Variable。');
+    if (!GITHUB_TOKEN) {
+        console.error('错误: GITHUB_TOKEN 环境变量未设置。无法更新 GitHub Variable。');
         return false;
     }
 
@@ -74,7 +74,7 @@ async function updateGitHubVariable(timestamp) {
         const response = await fetch(url, {
             method: 'PATCH', // 使用 PATCH 方法更新现有变量
             headers: {
-                'Authorization': `token ${REPO_PAT}`,
+                'Authorization': `token ${GITHUB_TOKEN}`,
                 'Accept': 'application/vnd.github.v3+json',
                 'User-Agent': 'Node.js Script for GitHub Actions',
                 'Content-Type': 'application/json',
