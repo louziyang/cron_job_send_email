@@ -7,8 +7,8 @@ import { exec } from 'child_process'; // 用于执行外部命令
 const GITHUB_API_URL = 'https://api.github.com';
 const REPO_OWNER = process.env.GITHUB_REPOSITORY.split('/')[0]; // 从GITHUB_REPOSITORY环境变量中获取所有者
 const REPO_NAME = process.env.GITHUB_REPOSITORY.split('/')[1];  // 从GITHUB_REPOSITORY环境变量中获取仓库名称
-const REPO_PAT = process.env.REPO_PAT; // 从GitHub Secrets中获取的PAT
-const LAST_RUN_VARIABLE_NAME = 'LAST_RUN_DATE'; // GitHub Repository Variable 的名称
+const REPO_PAT = process.env.GITHUB_TOKEN; // 从GitHub Secrets中获取的PAT
+const LAST_RUN_DATE = process.env.LAST_RUN_DATE; // 从GitHub Variables get LAST_RUN_DATE
 
 // 获取当前运行的 Node.js 解释器的路径
 const nodeExecutable = process.execPath; 
@@ -68,7 +68,7 @@ async function updateGitHubVariable(timestamp) {
         return false;
     }
 
-    const url = `${GITHUB_API_URL}/repos/${REPO_OWNER}/${REPO_NAME}/actions/variables/${LAST_RUN_VARIABLE_NAME}`;
+    const url = `${GITHUB_API_URL}/repos/${REPO_OWNER}/${REPO_NAME}/actions/variables/LAST_RUN_DATE`;
     try {
         // 使用已赋值的 fetch 函数
         const response = await fetch(url, {
@@ -109,7 +109,7 @@ const runTask = async () => {
     const CURRENT_RUN_DATE_STR = new Date(CURRENT_RUN_TIMESTAMP).toLocaleString();
 
     // 从 GitHub Repository Variable 中获取上次运行时间戳
-    let lastRunTimestamp = await getGitHubVariable();
+    let lastRunTimestamp = new Date(LAST_RUN_DATE);
     if (lastRunTimestamp === 0) {
         console.log('GitHub Variable 中未找到上次运行时间，或获取失败，将视为首次运行。');
     }
