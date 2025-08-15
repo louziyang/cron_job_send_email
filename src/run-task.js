@@ -1,6 +1,6 @@
 // run-task.js
-const fs = require('fs'); // 仍然用于读取可能存在的旧文件（可选，用于兼容）
-const path = require('path'); // 用于处理文件路径
+import fs from 'fs'
+import path from 'path'
 const { exec } = require('child_process'); // 用于执行外部命令
 
 // GitHub API 相关配置
