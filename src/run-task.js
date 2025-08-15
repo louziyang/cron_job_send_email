@@ -94,30 +94,6 @@ async function updateGitHubVariable(timestamp) {
         return false;
     }
     
-    try {
-        // 使用已赋值的 fetch 函数
-        const response = await fetch(url, {
-            method: 'PATCH',
-            headers: {
-              'Authorization': `Bearer ${GITHUB_TOKEN}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ value: timestamp.toString() }),
-        });
-
-        if (response.ok) {
-            const data = await response.json();
-            const value = parseInt(data.value, 10);
-            return isNaN(value) ? 0 : value; // 如果解析失败，返回0
-        } else {
-            const errorText = await response.text();
-            console.error(`获取 GitHub Variable 失败: ${response.status} - ${errorText}`);
-            return 0; // 获取失败，视为首次运行
-        }
-    } catch (error) {
-        console.error(`获取 GitHub Variable 时发生网络错误: ${error.message}`);
-        return 0; // 发生错误，视为首次运行
-    }
 }
 
 
