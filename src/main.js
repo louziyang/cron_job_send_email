@@ -1,5 +1,5 @@
 // send-email.js
-const nodemailer = require('nodemailer');
+import nodemailer from 'nodemailer';
 
 const main = async () => {
     // 从 GitHub Secrets 中读取环境变量
