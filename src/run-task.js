@@ -1,7 +1,7 @@
 // run-task.js
 import fs from 'fs'
 import path from 'path'
-const { exec } = require('child_process'); // 用于执行外部命令
+import { exec } from 'child_process'; // 用于执行外部命令
 
 // GitHub API 相关配置
 const GITHUB_API_URL = 'https://api.github.com';
