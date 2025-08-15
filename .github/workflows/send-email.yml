@@ -26,7 +26,7 @@ jobs:
       - name: Run email script
         run: node src/run-task.js
         env:
-          GITHUBTOKEN: ${{ secrets.GITHUBTOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           LAST_RUN_DATE: ${{ vars.LAST_RUN_DATE }}
           GMAIL_USER: ${{ secrets.GMAIL_USER }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
