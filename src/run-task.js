@@ -74,7 +74,7 @@ async function updateGitHubVariable(timestamp) {
       const response = await fetch(url, {
         method: 'PATCH',
         headers: {
-          Authorization: Bearer ${GITHUB_TOKEN},
+          'Authorization': `Bearer ${GITHUB_TOKEN}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ value: timestamp.toString() }),
