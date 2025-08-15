@@ -69,23 +69,19 @@ async function updateGitHubVariable(timestamp) {
     }
 
     const url = `${GITHUB_API_URL}/repos/${REPO_OWNER}/${REPO_NAME}/actions/variables/LAST_RUN_DATE`;
-    try {
-        // 使用已赋值的 fetch 函数
-        const response = await fetch(url, {
-            method: 'PATCH', // 使用 PATCH 方法更新现有变量
-            headers: {
-                'Authorization': `token ${GITHUB_TOKEN}`,
-                'Accept': 'application/vnd.github.v3+json',
-                'User-Agent': 'Node.js Script for GitHub Actions',
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                name: "LAST_RUN_DATE",
-                value: timestamp.toString(), // 将时间戳转换为字符串
-            }),
-        });
 
-        if (response.ok) {
+    (async () => {
+      const response = await fetch(url, {
+        method: 'PATCH',
+        headers: {
+          Authorization: Bearer ${GITHUB_TOKEN},
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ value: timestamp.toString() }),
+    
+      });
+        
+    if (response.ok) {
             console.log(`成功更新 GitHub Variable '${LAST_RUN_VARIABLE_NAME}' 为 ${timestamp}`);
             return true;
         } else {
@@ -93,10 +89,6 @@ async function updateGitHubVariable(timestamp) {
             console.error(`更新 GitHub Variable 失败: ${response.status} - ${errorText}`);
             return false;
         }
-    } catch (error) {
-        console.error(`更新 GitHub Variable 时发生网络错误: ${error.message}`);
-        return false;
-    }
 }
 
 
