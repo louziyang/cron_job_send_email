@@ -1,8 +1,7 @@
 {
-  "name": "your-project",
+  "name": "cron_job_send_email",
   "version": "1.0.0",
   "dependencies": {
     "node-fetch": "^3.0.0" 
-    // 确保版本兼容 Node.js 18.x，通常 v3+ 都是 ES Module
   }
 }
