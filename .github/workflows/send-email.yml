@@ -26,6 +26,7 @@ jobs:
       - name: Run email script
         run: node src/run-task.js
         env:
+          LAST_RUN_DATE: ${{ vars.LAST_RUN_DATE }}
           GMAIL_USER: ${{ secrets.GMAIL_USER }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
           TO_EMAIL: ${{ secrets.MAIL_TO }} # 可以在这里设置收件人
