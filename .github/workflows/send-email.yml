@@ -3,7 +3,7 @@ name: Send Email Notification
 
 on:
   schedule:
-    - cron: '0 0 * * *' 
+    - cron: '0 0 * * 2' 
   workflow_dispatch:
 
 jobs:
@@ -29,6 +29,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.REPO_PAT }}
           LAST_RUN_DATE: ${{ vars.LAST_RUN_DATE }}
+          INTERVAL_DATE: ${{ vars.INTERVAL_DATE }}
           GMAIL_USER: ${{ secrets.GMAIL_USER }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
           TO_EMAIL: ${{ secrets.MAIL_TO }} # 可以在这里设置收件人
