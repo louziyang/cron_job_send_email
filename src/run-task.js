@@ -80,7 +80,7 @@ async function updateGitHubVariable(timestamp) {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                name: LAST_RUN_VARIABLE_NAME,
+                name: "LAST_RUN_DATE",
                 value: timestamp.toString(), // 将时间戳转换为字符串
             }),
         });
