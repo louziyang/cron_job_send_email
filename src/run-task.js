@@ -8,8 +8,9 @@ const GITHUB_API_URL = 'https://api.github.com';
 const REPO_OWNER = process.env.GITHUB_REPOSITORY.split('/')[0]; // 从GITHUB_REPOSITORY环境变量中获取所有者
 const REPO_NAME = process.env.GITHUB_REPOSITORY.split('/')[1];  // 从GITHUB_REPOSITORY环境变量中获取仓库名称
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN; // 从GitHub Secrets中获取的PAT
-const LAST_RUN_VARIABLE_NAME = 'LAST_RUN_DATE'
 const LAST_RUN_DATE = process.env.LAST_RUN_DATE; // 从GitHub Variables get LAST_RUN_DATE
+
+const LAST_RUN_VARIABLE_NAME = 'LAST_RUN_DATE'
 
 // 获取当前运行的 Node.js 解释器的路径
 const nodeExecutable = process.execPath; 
@@ -19,7 +20,7 @@ const SCRIPT_TO_RUN = 'src/main.js';
 
 console.log(`尝试使用 '${nodeExecutable}' 运行 '${SCRIPT_TO_RUN}'...`);
 
-const DAYS_INTERVAL = 1; // 运行间隔天数
+const DAYS_INTERVAL = process.env.INTERVAL_DATE; // 运行间隔天数
 
 /**
  * 从 GitHub Repository Variable 获取上次运行时间戳
