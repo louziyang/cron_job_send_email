@@ -14,7 +14,7 @@ const LAST_RUN_VARIABLE_NAME = 'LAST_TASK_RUN_TIMESTAMP'; // GitHub Repository V
 const nodeExecutable = process.execPath; 
 
 // 您要执行的主要任务的命令
-const SCRIPT_TO_RUN = 'main.js';
+const SCRIPT_TO_RUN = 'src/main.js';
 
 console.log(`尝试使用 '${nodeExecutable}' 运行 '${SCRIPT_TO_RUN}'...`);
 
