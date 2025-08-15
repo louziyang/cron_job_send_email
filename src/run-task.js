@@ -82,6 +82,30 @@ async function updateGitHubVariable(timestamp) {
         });
 
         if (response.ok) {
+            console.log(`成功更新 GitHub Variable '${LAST_RUN_VARIABLE_NAME}' 为 ${timestamp}`);
+            return true;
+        } else {
+            const errorText = await response.text();
+            console.error(`更新 GitHub Variable 失败: ${response.status} - ${errorText}`);
+            return false;
+        }
+    } catch (error) {
+        console.error(`更新 GitHub Variable 时发生网络错误: ${error.message}`);
+        return false;
+    }
+    
+    try {
+        // 使用已赋值的 fetch 函数
+        const response = await fetch(url, {
+            method: 'PATCH',
+            headers: {
+              'Authorization': `Bearer ${GITHUB_TOKEN}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ value: timestamp.toString() }),
+        });
+
+        if (response.ok) {
             const data = await response.json();
             const value = parseInt(data.value, 10);
             return isNaN(value) ? 0 : value; // 如果解析失败，返回0
