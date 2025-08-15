@@ -2,7 +2,6 @@
 const fs = require('fs'); // 仍然用于读取可能存在的旧文件（可选，用于兼容）
 const path = require('path'); // 用于处理文件路径
 const { exec } = require('child_process'); // 用于执行外部命令
-const fetch = require('node-fetch');
 
 // GitHub API 相关配置
 const GITHUB_API_URL = 'https://api.github.com';
@@ -105,7 +104,7 @@ async function updateGitHubVariable(timestamp) {
  * 检查并运行任务的主函数
  */
 const runTask = async () => {
-
+    const { default: fetch } = await import('node-fetch');
     const CURRENT_RUN_TIMESTAMP = Date.now(); 
     const CURRENT_RUN_DATE_STR = new Date(CURRENT_RUN_TIMESTAMP).toLocaleString();
 
